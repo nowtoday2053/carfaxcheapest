@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CheapCarfax support — get help with your order, report, or account. Email us at support@carfaxcheapest.com.">
+  <title>Support — CheapCarfax</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="auth.css">
+  <style>
+    .support-hero {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+      padding: calc(56px + 4rem) 0 4rem;
+      text-align: center;
+      color: #fff;
+    }
+    .support-hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+    }
+    .support-hero p {
+      font-size: 1.0625rem;
+      color: rgba(255,255,255,0.78);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Email card ── */
+    .support-email-section {
+      background: var(--bg-light);
+      padding: 3.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .support-email-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      max-width: 580px;
+      margin: 0 auto;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .support-email-icon {
+      width: 64px;
+      height: 64px;
+      background: #eff6ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+    .support-email-card h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .support-email-card p {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      margin-bottom: 1.75rem;
+      line-height: 1.6;
+    }
+    .support-email-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--blue);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+    }
+    .support-email-link:hover {
+      background: var(--blue-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+    }
+    .support-response-note {
+      margin-top: 1.25rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+    .support-response-note svg { color: #22c55e; }
+
+    /* ── Topics ── */
+    .support-topics-section { padding: 4rem 0; background: var(--bg); }
+    .support-topics-section .section-title { margin-bottom: 0.5rem; }
+    .support-topics-section .section-sub { margin-bottom: 2.5rem; }
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .topic-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .topic-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .topic-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .topic-card h3 { font-size: 0.9375rem; font-weight: 700; color: var(--text); }
+    .topic-card p { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+    .topic-card a {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--blue);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .topic-card a:hover { text-decoration: underline; }
+
+    /* ── FAQ quick ── */
+    .support-faq-section { padding: 4rem 0; background: var(--bg-light); }
+    .support-faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .support-faq-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+    }
+    .support-faq-item h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .support-faq-item p {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    /* ── Bottom CTA ── */
+    .support-cta {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 3.5rem 0;
+      text-align: center;
+    }
+    .support-cta h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .support-cta p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    @media (max-width: 900px) {
+      .topics-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .topics-grid { grid-template-columns: 1fr; }
+      .support-faq-grid { grid-template-columns: 1fr; }
+      .support-email-card { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <svg class="nav-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+        CheapCarfax
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="how.html">How to Use</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="faq.html">FAQ</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="support.html">Support</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="support-hero">
+    <div class="container">
+      <h1>How can we help?</h1>
+      <p>We're here to make sure every customer gets their report and has a great experience. Reach out anytime.</p>
+    </div>
+  </section>
+
+  <!-- EMAIL CARD -->
+  <section class="support-email-section">
+    <div class="container">
+      <div class="support-email-card">
+        <div class="support-email-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <h2>Email Support</h2>
+        <p>Send us your order details, VIN, or question and we'll get back to you fast. Include your order confirmation or the email you used at checkout to speed things up.</p>
+        <a href="mailto:support@carfaxcheapest.com" class="support-email-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          support@carfaxcheapest.com
+        </a>
+        <div class="support-response-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/></svg>
+          We typically respond within a few hours
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMON TOPICS -->
+  <section class="support-topics-section">
+    <div class="container">
+      <h2 class="section-title">Common topics</h2>
+      <p class="section-sub">Most issues fall into one of these categories. Click to email us with the right subject.</p>
+      <div class="topics-grid">
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3>I didn't receive my report</h3>
+          <p>Check your spam folder first. If it's not there, email us with your VIN and order details and we'll resend it immediately.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Missing Report&body=Hi, I paid for a report but didn't receive it. My VIN is: [VIN] and I paid with email: [EMAIL]">Email about this &rarr;</a>
+        </div>
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><path d="M1 10h22"/></svg>
+          </div>
+          <h3>I need a refund</h3>
+          <p>We offer a 30-day money-back guarantee, no questions asked. Email us with your order info and we'll process it within 24 hours.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Refund Request&body=Hi, I would like to request a refund for my order. My order email is: [EMAIL]">Request a refund &rarr;</a>
+        </div>
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3>My report looks wrong</h3>
+          <p>If the VIN or vehicle details don't match what you expected, email us and we'll verify the data directly with our Carfax source.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Report Issue&body=Hi, my report doesn't look right. My VIN is: [VIN] and the issue is: [DESCRIBE ISSUE]">Report an issue &rarr;</a>
+        </div>
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Account or login issue</h3>
+          <p>Can't log in or access your dashboard? Email us with the email you signed up with and we'll get you back in.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Account Issue&body=Hi, I'm having trouble with my account. My signup email is: [EMAIL]">Get account help &rarr;</a>
+        </div>
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Credits not showing up</h3>
+          <p>Purchased a credit pack but your balance didn't update? Email us with your Stripe receipt and we'll add the credits manually right away.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Missing Credits&body=Hi, I purchased credits but they haven't appeared in my account. My email is: [EMAIL]">Email about credits &rarr;</a>
+        </div>
+
+        <div class="topic-card">
+          <div class="topic-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Something else</h3>
+          <p>Have a different question or just want to talk? We read every email personally and always reply.</p>
+          <a href="mailto:support@carfaxcheapest.com?subject=Question">Send us a message &rarr;</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK FAQ -->
+  <section class="support-faq-section">
+    <div class="container">
+      <h2 class="section-title">Quick answers</h2>
+      <p class="section-sub">The most common questions, answered.</p>
+      <div class="support-faq-grid">
+        <div class="support-faq-item">
+          <h4>How fast will I get my report?</h4>
+          <p>Usually under 60 seconds after payment. If there's any delay beyond 5 minutes, email us and we'll sort it out immediately.</p>
+        </div>
+        <div class="support-faq-item">
+          <h4>Is this the real Carfax report?</h4>
+          <p>Yes — the exact same official PDF you'd get directly from Carfax. Same data, same format, dramatically lower price.</p>
+        </div>
+        <div class="support-faq-item">
+          <h4>Do credits expire?</h4>
+          <p>Never. Your report credits stay in your account indefinitely — use them whenever you need them.</p>
+        </div>
+        <div class="support-faq-item">
+          <h4>What's your refund policy?</h4>
+          <p>30-day money-back guarantee, no questions asked. Just email us and we process it within 24 hours.</p>
+        </div>
+        <div class="support-faq-item">
+          <h4>What payment methods do you accept?</h4>
+          <p>Visa, Mastercard, Amex, Discover, Apple Pay, and Google Pay — all processed securely through Stripe.</p>
+        </div>
+        <div class="support-faq-item">
+          <h4>Can I use one report for multiple VINs?</h4>
+          <p>Each report is for one VIN. Buy a credit pack if you need multiple — credits never expire and work out to much cheaper per report.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="support-cta">
+    <div class="container">
+      <h2>Still need help?</h2>
+      <p>We're real people who read every email. Don't hesitate to reach out.</p>
+      <a href="mailto:support@carfaxcheapest.com" class="support-email-link" style="display:inline-flex;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        support@carfaxcheapest.com
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <strong>CheapCarfax</strong>
+          <p>Official Carfax vehicle history reports at a fraction of the price.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="pricing.html">Pricing</a></li>
+            <li><a href="how.html">How It Works</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="support.html">Support</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Free Tools</h4>
+          <ul>
+            <li><a href="#">VIN Decoder</a></li>
+            <li><a href="#">Recall Check</a></li>
+            <li><a href="#">Loan Calculator</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Refund Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 CheapCarfax. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
