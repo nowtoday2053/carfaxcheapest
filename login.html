@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In — CheapCarfax</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <svg class="nav-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+        CheapCarfax
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="how.html">How to Use</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="faq.html">FAQ</a>
+        <a href="reviews.html">Reviews</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="auth-page">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Log in to access your reports.</p>
+
+      <div class="auth-error" id="authError"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Log In</button>
+      </form>
+
+      <p class="auth-footer">Don't have an account? <a href="signup.html">Sign up</a></p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var form = document.getElementById('loginForm');
+      var errorEl = document.getElementById('authError');
+      var btn = document.getElementById('submitBtn');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+
+        var email = form.email.value.trim();
+        var password = form.password.value;
+
+        fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password })
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            if (res.ok && res.data.success) {
+              window.location.href = 'index.html';
+            } else {
+              showError(res.data.error || 'Something went wrong.');
+            }
+          })
+          .catch(function () {
+            showError('Network error. Please try again.');
+          });
+      });
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+      }
+    })();
+  </script>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

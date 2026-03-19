@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reports — CheapCarfax</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+  <nav class="navbar scrolled" id="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <svg class="nav-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+        CheapCarfax
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="how.html">How to Use</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="faq.html">FAQ</a>
+        <a href="reviews.html">Reviews</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <section style="padding-top: calc(56px + 2rem); padding-bottom: 3rem;">
+    <div class="container" style="max-width: 800px;">
+      <div id="dashboardContent">
+        <div style="text-align: center; padding: 4rem 0;">
+          <div class="spinner" style="width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.7s linear infinite;"></div>
+          <p style="color: #6b7280; font-size: 0.9rem;">Loading your reports...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .dash-header {
+      margin-bottom: 2rem;
+    }
+    .dash-header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+    .dash-header p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .report-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .report-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      transition: box-shadow 0.15s;
+    }
+    .report-item:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .report-item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .report-item-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .report-item-info h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+    .report-item-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .report-item-action {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--blue);
+      text-decoration: none;
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--blue);
+      border-radius: var(--radius);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .report-item-action:hover {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: var(--bg-light);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .empty-state h3 {
+      font-size: 1.0625rem;
+      margin: 0.75rem 0 0.3rem;
+    }
+    .empty-state p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .login-prompt {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .login-prompt h3 {
+      font-size: 1.125rem;
+      margin: 0.75rem 0 0.3rem;
+    }
+    .login-prompt p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+  </style>
+
+  <script>
+    (function () {
+      var container = document.getElementById('dashboardContent');
+
+      fetch('/api/me')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.loggedIn) {
+            showLoginPrompt();
+            return;
+          }
+          loadReports(data.user);
+        })
+        .catch(function () {
+          showLoginPrompt();
+        });
+
+      function showLoginPrompt() {
+        container.innerHTML =
+          '<div class="login-prompt">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a8.38 8.38 0 0 1 13 0"/></svg>' +
+            '<h3>Log in to view your reports</h3>' +
+            '<p>You need to be logged in to access your purchased reports.</p>' +
+            '<a href="login.html" class="btn btn-primary">Log In</a>' +
+          '</div>';
+      }
+
+      function loadReports(user) {
+        var creditHtml = user.credits > 0
+          ? '<div style="display:inline-flex;align-items:center;gap:0.4rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:0.4rem 0.75rem;margin-top:0.75rem;font-size:0.8125rem;font-weight:600;color:#16a34a;">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/></svg>' +
+              user.credits + ' report credits available' +
+            '</div>'
+          : '<div style="margin-top:0.75rem;"><a href="pricing.html" style="font-size:0.8125rem;color:#2563eb;font-weight:600;text-decoration:none;">Buy report credits &rarr;</a></div>';
+
+        container.innerHTML =
+          '<div class="dash-header">' +
+            '<h1>My Reports</h1>' +
+            '<p>Welcome back, ' + user.name + '. Here are your purchased vehicle history reports.</p>' +
+            creditHtml +
+          '</div>' +
+          '<div id="reportList"><div style="text-align:center;padding:2rem 0;color:#6b7280;">Loading...</div></div>';
+
+        fetch('/api/my-reports')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success || !data.reports || data.reports.length === 0) {
+              showEmpty();
+              return;
+            }
+            renderReports(data.reports);
+          })
+          .catch(function () {
+            document.getElementById('reportList').innerHTML =
+              '<p style="text-align:center;color:#6b7280;padding:2rem 0;">Failed to load reports. Please refresh.</p>';
+          });
+      }
+
+      function showEmpty() {
+        document.getElementById('reportList').innerHTML =
+          '<div class="empty-state">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+            '<h3>No reports yet</h3>' +
+            '<p>When you purchase a vehicle history report, it will appear here.</p>' +
+            '<a href="index.html" class="btn btn-primary">Look Up a VIN</a>' +
+          '</div>';
+      }
+
+      function formatDate(dateStr) {
+        try {
+          var d = new Date(dateStr);
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) {
+          return dateStr;
+        }
+      }
+
+      function renderReports(reports) {
+        var html = '<div class="report-list">';
+        reports.forEach(function (r) {
+          var label = r.vehicle_name || ('VIN: ' + r.vin);
+          html +=
+            '<div class="report-item">' +
+              '<div class="report-item-left">' +
+                '<div class="report-item-icon">' +
+                  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                '</div>' +
+                '<div class="report-item-info">' +
+                  '<h3>' + label + '</h3>' +
+                  '<p>VIN: ' + r.vin + ' &middot; ' + formatDate(r.created_at) + '</p>' +
+                '</div>' +
+              '</div>' +
+              '<a href="success.html?session_id=' + encodeURIComponent(r.stripe_session_id) + '" class="report-item-action">View Report</a>' +
+            '</div>';
+        });
+        html += '</div>';
+        document.getElementById('reportList').innerHTML = html;
+      }
+    })();
+  </script>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
