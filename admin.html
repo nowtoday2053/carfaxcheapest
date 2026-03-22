@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — CheapCarfax</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 220px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      padding: 0 0.25rem;
+    }
+    .sidebar-brand svg { color: #60a5fa; flex-shrink: 0; }
+    .sidebar-brand-name { font-size: 1.05rem; font-weight: 800; color: #f8fafc; }
+    .sidebar-brand-name span { color: #60a5fa; }
+    .admin-tag {
+      display: inline-block;
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 5px;
+      margin-left: 0.2rem;
+    }
+    .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.65rem 0.875rem;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover { background: #0f172a; color: #e2e8f0; }
+    .nav-item.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .sidebar-footer { padding-top: 1rem; border-top: 1px solid #334155; }
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.65rem 0.875rem;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,0.1); color: #f87171; }
+
+    /* ---- Main ---- */
+    .main {
+      margin-left: 220px;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-header h1 { font-size: 1.5rem; font-weight: 800; color: #f1f5f9; }
+    .page-header p { font-size: 0.875rem; color: #64748b; margin-top: 0.25rem; }
+
+    /* ---- VIN Form ---- */
+    .vin-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .vin-card h2 { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.25rem; }
+    .vin-card p { font-size: 0.8125rem; color: #64748b; margin-bottom: 1.25rem; }
+
+    .vin-input-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+    .vin-field { flex: 1; }
+    .vin-field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.02em;
+    }
+    .vin-field input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 1rem;
+      font-family: 'Inter', monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .vin-field input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+    .vin-field input::placeholder { color: #334155; font-weight: 400; letter-spacing: 0; }
+
+    .btn-run {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-run:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.5); }
+    .btn-run:active { transform: translateY(0); }
+    .btn-run:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Error / Success banners ---- */
+    .alert {
+      border-radius: 10px;
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+    .alert-success { background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.25); color: #4ade80; }
+    .alert svg { flex-shrink: 0; margin-top: 0.1rem; }
+
+    /* ---- Report Result ---- */
+    #reportResult { margin-bottom: 2rem; }
+
+    .result-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .result-toolbar {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .result-toolbar h3 { font-size: 0.9375rem; font-weight: 700; color: #f1f5f9; margin-right: auto; }
+    .result-toolbar .vin-tag {
+      font-size: 0.75rem;
+      color: #64748b;
+      background: #0f172a;
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+      font-family: monospace;
+      letter-spacing: 0.05em;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.875rem;
+      border-radius: 7px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+    }
+    .btn-pdf-sm { background: #2563eb; color: #fff; }
+    .btn-pdf-sm:hover { background: #1d4ed8; }
+    .btn-copy-sm { background: #334155; color: #e2e8f0; }
+    .btn-copy-sm:hover { background: #475569; }
+    .btn-copy-sm.copied { background: #065f46; color: #6ee7b7; }
+    .result-iframe-wrap { padding: 1.25rem; }
+    .result-iframe-wrap iframe {
+      width: 100%;
+      min-height: 70vh;
+      border: none;
+      border-radius: 8px;
+      background: #fff;
+      display: block;
+    }
+
+    /* ---- Recent Reports Table ---- */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+    }
+    .reports-table-wrap {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead { background: #0f172a; }
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
+      color: #cbd5e1;
+      border-top: 1px solid #1e293b;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .vin-mono { font-family: monospace; font-weight: 600; letter-spacing: 0.04em; color: #93c5fd; }
+    .source-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .source-admin { background: rgba(239,68,68,0.15); color: #f87171; }
+    .source-paid { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .source-credit { background: rgba(168,85,247,0.15); color: #c084fc; }
+    .table-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-right: 0.25rem;
+    }
+    .table-action.view { background: #1e3a5f; color: #60a5fa; }
+    .table-action.view:hover { background: #1e40af; color: #bfdbfe; }
+    .table-action.copy-link { background: #1e293b; color: #94a3b8; border: 1px solid #334155; cursor: pointer; border: none; }
+    .table-action.copy-link:hover { background: #334155; }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #475569;
+    }
+    .empty-state svg { margin-bottom: 0.75rem; opacity: 0.4; }
+    .empty-state p { font-size: 0.875rem; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .sidebar { width: 64px; padding: 1rem 0.5rem; }
+      .sidebar-brand-name, .admin-tag, .nav-item span { display: none; }
+      .nav-item { justify-content: center; }
+      .btn-logout span { display: none; }
+      .btn-logout { justify-content: center; }
+      .main { margin-left: 64px; padding: 1.25rem; }
+      .vin-input-row { flex-direction: column; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+      <span class="sidebar-brand-name">Cheap<span>Carfax</span></span>
+      <span class="admin-tag">Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <a class="nav-item" href="index.html" style="text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Live Site</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <div class="page-header">
+      <h1>Run a Free Report</h1>
+      <p>Enter any VIN to instantly pull a Carfax report — no charge.</p>
+    </div>
+
+    <!-- VIN Lookup -->
+    <div class="vin-card">
+      <h2>VIN Lookup</h2>
+      <p>Enter a 17-character Vehicle Identification Number below.</p>
+      <div class="vin-input-row">
+        <div class="vin-field">
+          <label for="vinInput">VIN Number</label>
+          <input type="text" id="vinInput" placeholder="e.g. 1HGCR2F32EA085894" maxlength="17" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn-run" id="runBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Run Report
+        </button>
+      </div>
+      <div id="lookupAlert" style="display:none;"></div>
+    </div>
+
+    <!-- Report Result -->
+    <div id="reportResult" style="display:none;"></div>
+
+    <!-- Recent Reports -->
+    <div>
+      <div class="section-title">Recent Reports</div>
+      <div class="reports-table-wrap">
+        <table id="reportsTable">
+          <thead>
+            <tr>
+              <th>VIN</th>
+              <th>Source</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reportsBody">
+            <tr><td colspan="4"><div class="empty-state"><p>Loading reports…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Check admin auth on load
+    fetch('/api/admin/check')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.isAdmin) window.location.href = '/admin-login.html';
+        else loadReports();
+      })
+      .catch(function () { window.location.href = '/admin-login.html'; });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function () {
+      fetch('/api/admin/logout', { method: 'POST' })
+        .then(function () { window.location.href = '/admin-login.html'; });
+    });
+
+    // VIN input: uppercase only
+    var vinInput = document.getElementById('vinInput');
+    vinInput.addEventListener('input', function () {
+      var pos = this.selectionStart;
+      this.value = this.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
+      try { this.setSelectionRange(pos, pos); } catch(e) {}
+    });
+
+    // Run report
+    document.getElementById('runBtn').addEventListener('click', runReport);
+    vinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') runReport(); });
+
+    function runReport() {
+      var vin = vinInput.value.trim();
+      var btn = document.getElementById('runBtn');
+      var alertEl = document.getElementById('lookupAlert');
+      var resultEl = document.getElementById('reportResult');
+
+      if (!vin || vin.length < 17) {
+        showAlert(alertEl, 'error', 'Please enter a valid 17-character VIN.');
+        return;
+      }
+
+      alertEl.style.display = 'none';
+      resultEl.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Fetching…';
+
+      fetch('/api/admin/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vin: vin })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Report';
+
+          if (data.success && data.data && data.data.html_content) {
+            renderResult(data, vin);
+            loadReports();
+          } else {
+            showAlert(alertEl, 'error', data.error || 'Failed to pull report. Check the VIN and try again.');
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Report';
+          showAlert(alertEl, 'error', 'Network error. Please try again.');
+        });
+    }
+
+    function renderResult(data, vin) {
+      var resultEl = document.getElementById('reportResult');
+      var shareUrl = data.shareToken ? window.location.origin + '/shared/' + data.shareToken : null;
+      var pdfUrl   = data.shareToken ? window.location.origin + '/shared/' + data.shareToken + '/raw' : null;
+
+      var html = '<div class="result-card"><div class="result-toolbar">';
+      html += '<h3>Report Ready</h3>';
+      html += '<span class="vin-tag">' + vin + '</span>';
+      if (pdfUrl) {
+        html += '<a class="action-btn btn-pdf-sm" href="' + pdfUrl + '" target="_blank"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</a>';
+      }
+      if (shareUrl) {
+        html += '<button class="action-btn btn-copy-sm" id="copyShareBtn" onclick="copyShareLink(\'' + shareUrl + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span id="copyShareText">Copy Share Link</span></button>';
+      }
+      html += '</div><div class="result-iframe-wrap"><iframe id="adminReportFrame" title="Vehicle History Report" sandbox="allow-same-origin"></iframe></div></div>';
+
+      resultEl.innerHTML = html;
+      resultEl.style.display = 'block';
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Write report HTML into iframe
+      var iframe = document.getElementById('adminReportFrame');
+      var doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(data.data.html_content);
+      doc.close();
+      function resize() {
+        try {
+          var h = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+          if (h > 300) iframe.style.height = h + 'px';
+        } catch(e) {}
+      }
+      iframe.onload = resize;
+      setTimeout(resize, 600);
+      setTimeout(resize, 1800);
+      setTimeout(resize, 3500);
+    }
+
+    function copyShareLink(url) {
+      navigator.clipboard.writeText(url).then(function () {
+        var btn = document.getElementById('copyShareBtn');
+        var txt = document.getElementById('copyShareText');
+        if (btn) {
+          btn.classList.add('copied');
+          txt.textContent = 'Copied!';
+          setTimeout(function () { btn.classList.remove('copied'); txt.textContent = 'Copy Share Link'; }, 2500);
+        }
+      }).catch(function () { prompt('Copy this link:', url); });
+    }
+
+    function showAlert(el, type, msg) {
+      var icon = type === 'error'
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/></svg>';
+      el.className = 'alert alert-' + type;
+      el.innerHTML = icon + '<span>' + msg + '</span>';
+      el.style.display = 'flex';
+    }
+
+    // Load recent reports
+    function loadReports() {
+      fetch('/api/admin/reports')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var tbody = document.getElementById('reportsBody');
+          if (!data.success || !data.reports || data.reports.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg><p>No reports yet. Run your first report above.</p></div></td></tr>';
+            return;
+          }
+          var rows = data.reports.map(function (r) {
+            var shareUrl = window.location.origin + '/shared/' + r.token;
+            var pdfUrl   = window.location.origin + '/shared/' + r.token + '/raw';
+            var date = r.created_at ? new Date(r.created_at + 'Z').toLocaleString() : '—';
+            var badge = '<span class="source-badge source-' + r.source + '">' + r.source + '</span>';
+            return '<tr>' +
+              '<td><span class="vin-mono">' + (r.vin || '—') + '</span></td>' +
+              '<td>' + badge + '</td>' +
+              '<td>' + date + '</td>' +
+              '<td>' +
+                '<a class="table-action view" href="' + shareUrl + '" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</a>' +
+                '<a class="table-action view" href="' + pdfUrl + '" target="_blank" style="background:#1e3a5f;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</a>' +
+                '<button class="table-action copy-link" onclick="copyLink(\'' + shareUrl + '\', this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy</button>' +
+              '</td>' +
+            '</tr>';
+          });
+          tbody.innerHTML = rows.join('');
+        })
+        .catch(function () {});
+    }
+
+    function copyLink(url, btn) {
+      navigator.clipboard.writeText(url).then(function () {
+        var orig = btn.innerHTML;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+      }).catch(function () { prompt('Copy this link:', url); });
+    }
+  </script>
+</body>
+</html>

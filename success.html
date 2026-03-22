@@ -45,6 +45,7 @@
 
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
+    .report-dl-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
     .report-success-banner {
       display: flex;
@@ -72,6 +73,53 @@
       border: none;
       display: block;
     }
+
+    .report-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .report-dl-btn, .report-print-btn, .report-share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      padding: 0.75rem 1.375rem;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+    .report-dl-btn {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+    }
+    .report-dl-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37,99,235,0.4);
+    }
+    .report-print-btn {
+      background: #fff;
+      color: #111827;
+      border-color: #e5e7eb;
+    }
+    .report-print-btn:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+    .report-share-btn {
+      background: #fff;
+      color: #111827;
+      border-color: #e5e7eb;
+    }
+    .report-share-btn:hover { background: #f9fafb; border-color: #d1d5db; }
+    .report-share-btn.copied { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
 
     .report-error {
       text-align: center;
@@ -117,6 +165,20 @@
           '</div>';
       }
 
+      function downloadReport(htmlContent, vin) {
+        var printWin = window.open('', '_blank', 'width=900,height=700');
+        if (!printWin) {
+          alert('Please allow popups for this site, then try again.');
+          return;
+        }
+        // Inject print-trigger script so PDF dialog opens automatically
+        var injected = htmlContent.replace('</body>',
+          '<script>window.onload=function(){window.print();}<\/script></body>'
+        );
+        printWin.document.write(injected);
+        printWin.document.close();
+      }
+
       function renderReport(d) {
         var html = '';
 
@@ -126,13 +188,71 @@
           '<div><h3>Payment successful</h3><p>Your full vehicle history report for VIN ' + (d.vin || '') + ' is ready.</p></div>' +
         '</div>';
 
-        // Render the HTML report in an iframe
+        // Download + Print + Share action bar
         if (d.html_content) {
+          var pdfUrl   = d.shareToken ? '/shared/' + d.shareToken + '/raw' : null;
+          var shareUrl = d.shareToken ? window.location.origin + '/shared/' + d.shareToken : null;
+
+          html += '<div class="report-actions">';
+
+          if (pdfUrl) {
+            html += '<a class="btn btn-primary report-dl-btn" href="' + pdfUrl + '" target="_blank">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+              'Download as PDF</a>';
+          } else {
+            html += '<button class="btn btn-primary report-dl-btn" id="downloadBtn">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+              'Download as PDF</button>';
+          }
+
+          html += '<button class="btn btn-outline report-print-btn" id="printBtn">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' +
+            'Print Report</button>';
+
+          if (shareUrl) {
+            html += '<button class="btn btn-outline report-share-btn" id="shareBtn" data-url="' + shareUrl + '">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>' +
+              '<span id="shareText">Share Link</span></button>';
+          }
+
+          html += '</div>';
+
           html += '<div class="report-frame">' +
             '<iframe id="reportFrame" sandbox="allow-same-origin" title="Vehicle History Report"></iframe>' +
           '</div>';
 
           container.innerHTML = html;
+
+          // Wire up download button (fallback if no shareToken)
+          var dlBtn = document.getElementById('downloadBtn');
+          if (dlBtn) {
+            dlBtn.addEventListener('click', function () {
+              downloadReport(d.html_content, d.vin);
+            });
+          }
+
+          // Wire up print button
+          document.getElementById('printBtn').addEventListener('click', function () {
+            var iframe = document.getElementById('reportFrame');
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          });
+
+          // Wire up share button
+          var shareBtn = document.getElementById('shareBtn');
+          if (shareBtn) {
+            shareBtn.addEventListener('click', function () {
+              var url = this.getAttribute('data-url');
+              navigator.clipboard.writeText(url).then(function () {
+                shareBtn.classList.add('copied');
+                document.getElementById('shareText').textContent = 'Copied!';
+                setTimeout(function () {
+                  shareBtn.classList.remove('copied');
+                  document.getElementById('shareText').textContent = 'Share Link';
+                }, 2500);
+              }).catch(function () { prompt('Copy this shareable link:', url); });
+            });
+          }
 
           // Write the HTML content into the iframe
           var iframe = document.getElementById('reportFrame');

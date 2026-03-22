@@ -53,9 +53,41 @@ db.exec(`
   );
 `);
 
+// Shared reports table for PDF download & link sharing
+db.exec(`
+  CREATE TABLE IF NOT EXISTS shared_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT UNIQUE NOT NULL,
+    vin TEXT,
+    report_html TEXT NOT NULL,
+    source TEXT DEFAULT 'paid',
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+`);
+
 // Add credits column if it doesn't exist (for existing databases)
 try { db.exec('ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE reports ADD COLUMN paid_with_credits INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
+
+/* ==========================================================
+   Helpers
+   ========================================================== */
+function generateToken() {
+  return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+function saveSharedReport(vin, html, source) {
+  const token = generateToken();
+  db.prepare('INSERT OR IGNORE INTO shared_reports (token, vin, report_html, source) VALUES (?, ?, ?, ?)').run(token, vin, html, source || 'paid');
+  return token;
+}
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'carfaxisthebest';
+
+function requireAdmin(req, res, next) {
+  if (req.session.isAdmin) return next();
+  res.status(401).json({ error: 'Unauthorized' });
+}
 
 /* ==========================================================
    Middleware
@@ -329,6 +361,11 @@ app.post('/api/use-credit', async (req, res) => {
     });
     const data = await response.json();
 
+    if (data.success && data.data && data.data.html_content) {
+      const token = saveSharedReport(vin, data.data.html_content, 'credit');
+      data.shareToken = token;
+    }
+
     const updatedUser = db.prepare('SELECT credits FROM users WHERE id = ?').get(req.session.userId);
     data.remaining_credits = updatedUser.credits;
 
@@ -371,6 +408,12 @@ app.get('/api/report', async (req, res) => {
       headers: { 'X-API-Key': API_KEY }
     });
     const data = await response.json();
+
+    if (data.success && data.data && data.data.html_content) {
+      const token = saveSharedReport(vin, data.data.html_content, 'paid');
+      data.shareToken = token;
+    }
+
     res.json(data);
   } catch (err) {
     console.error('Report error:', err.message);
@@ -391,6 +434,173 @@ app.get('/api/my-reports', (req, res) => {
   const reports = db.prepare('SELECT vin, vehicle_name, stripe_session_id, paid_with_credits, created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC').all(req.session.userId);
   const user = db.prepare('SELECT credits FROM users WHERE id = ?').get(req.session.userId);
   res.json({ success: true, reports, credits: user ? user.credits : 0 });
+});
+
+/* ==========================================================
+   Admin Auth
+   ========================================================== */
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    req.session.isAdmin = true;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: 'Incorrect password. Try again.' });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.isAdmin = false;
+  res.json({ success: true });
+});
+
+app.get('/api/admin/check', (req, res) => {
+  res.json({ isAdmin: !!req.session.isAdmin });
+});
+
+/* ==========================================================
+   Admin: Free Report (no Stripe)
+   ========================================================== */
+app.post('/api/admin/report', requireAdmin, async (req, res) => {
+  const { vin } = req.body;
+  if (!vin) return res.status(400).json({ error: 'VIN is required' });
+
+  try {
+    const response = await fetch(`${API_BASE}/report?vin=${encodeURIComponent(vin)}`, {
+      headers: { 'X-API-Key': API_KEY }
+    });
+    const data = await response.json();
+
+    if (data.success && data.data && data.data.html_content) {
+      const token = saveSharedReport(vin, data.data.html_content, 'admin');
+      data.shareToken = token;
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error('Admin report error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch report' });
+  }
+});
+
+app.get('/api/admin/reports', requireAdmin, (req, res) => {
+  const reports = db.prepare('SELECT token, vin, source, created_at FROM shared_reports ORDER BY created_at DESC LIMIT 50').all();
+  res.json({ success: true, reports });
+});
+
+/* ==========================================================
+   Shared Report Viewer (public link)
+   ========================================================== */
+app.get('/shared/:token/raw', (req, res) => {
+  const report = db.prepare('SELECT * FROM shared_reports WHERE token = ?').get(req.params.token);
+  if (!report) return res.status(404).send('<h1 style="font-family:sans-serif;text-align:center;margin-top:4rem">Report not found or expired.</h1>');
+  // Inject auto-print so "Save as PDF" works seamlessly
+  const withPrint = report.report_html.replace('</body>', '<script>window.onload=function(){window.print();}<\/script></body>');
+  res.send(withPrint);
+});
+
+app.get('/shared/:token', (req, res) => {
+  const report = db.prepare('SELECT * FROM shared_reports WHERE token = ?').get(req.params.token);
+  if (!report) {
+    return res.status(404).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Not Found</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb}div{text-align:center}</style></head><body><div><h2>Report not found or expired.</h2><p><a href="/">Return to homepage</a></p></div></body></html>`);
+  }
+
+  const shareUrl = `${req.protocol}://${req.get('host')}/shared/${report.token}`;
+  const pdfUrl   = `${req.protocol}://${req.get('host')}/shared/${report.token}/raw`;
+
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle History Report — ${report.vin || 'CheapCarfax'}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+    .toolbar {
+      position: sticky; top: 0; z-index: 100;
+      background: #111827; color: #fff;
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .toolbar-brand { font-weight: 700; font-size: 1rem; color: #fff; text-decoration: none; margin-right: auto; display: flex; align-items: center; gap: 0.5rem; }
+    .toolbar-brand span { color: #60a5fa; }
+    .toolbar-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600;
+      border: none; cursor: pointer; transition: background 0.15s, transform 0.1s; text-decoration: none;
+    }
+    .btn-pdf { background: #2563eb; color: #fff; }
+    .btn-pdf:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .btn-copy { background: #374151; color: #e5e7eb; }
+    .btn-copy:hover { background: #4b5563; }
+    .btn-copy.copied { background: #065f46; color: #6ee7b7; }
+    .vin-badge { font-size: 0.75rem; color: #9ca3af; background: #1f2937; padding: 0.25rem 0.6rem; border-radius: 6px; font-family: monospace; }
+    .report-wrap { max-width: 980px; margin: 1.5rem auto; padding: 0 1rem 3rem; }
+    .report-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.06); }
+    .report-card iframe { width: 100%; min-height: 85vh; border: none; display: block; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <a class="toolbar-brand" href="/"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 0 0 2-2v-1h8v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4l-2.3-6.1A2 2 0 0 0 15.8 4H8.2a2 2 0 0 0-1.9 1.3L4 11v5a1 1 0 0 0 1 1z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>Cheap<span>Carfax</span></a>
+    ${report.vin ? `<span class="vin-badge">VIN: ${report.vin}</span>` : ''}
+    <a class="toolbar-btn btn-pdf" href="${pdfUrl}" target="_blank">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF
+    </a>
+    <button class="toolbar-btn btn-copy" id="copyBtn" onclick="copyLink()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span id="copyText">Copy Link</span>
+    </button>
+  </div>
+
+  <div class="report-wrap">
+    <div class="report-card">
+      <iframe id="reportFrame" title="Vehicle History Report" sandbox="allow-same-origin"></iframe>
+    </div>
+  </div>
+
+  <script>
+    var shareUrl = ${JSON.stringify(shareUrl)};
+
+    // Load report HTML into iframe
+    (function() {
+      var iframe = document.getElementById('reportFrame');
+      var doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(${JSON.stringify(report.report_html)});
+      doc.close();
+      function resize() {
+        try {
+          var h = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+          if (h > 300) iframe.style.height = h + 'px';
+        } catch(e) {}
+      }
+      iframe.onload = resize;
+      setTimeout(resize, 600);
+      setTimeout(resize, 1800);
+      setTimeout(resize, 3500);
+    })();
+
+    function copyLink() {
+      navigator.clipboard.writeText(shareUrl).then(function() {
+        var btn = document.getElementById('copyBtn');
+        var txt = document.getElementById('copyText');
+        btn.classList.add('copied');
+        txt.textContent = 'Copied!';
+        setTimeout(function() { btn.classList.remove('copied'); txt.textContent = 'Copy Link'; }, 2500);
+      }).catch(function() {
+        prompt('Copy this link:', shareUrl);
+      });
+    }
+  </script>
+</body>
+</html>`);
 });
 
 /* ==========================================================
